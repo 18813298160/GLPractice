@@ -11,7 +11,6 @@
 #include "Shader.h"
 
 
-// Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // Window dimensions
@@ -44,11 +43,15 @@ int main()
 	glViewport(0, 0, WIDTH, HEIGHT);
 
 
-	// Build and compile our shader program
+	// 编译shader程序
 	Shader ourShader("Shaders/default.vert", "Shaders/default.frag");
 
 
-	// Set up vertex data (and buffer(s)) and attribute pointers
+	/* 
+	1.把颜色数据加进顶点数据中。我们将把颜色数据添加为3个float值
+	至vertices数组
+	
+	2.需要注意的是顶点着色器中需要用layout标识符来把color属性的位置值设置为1：*/
 	GLfloat vertices[] = {
 		// Positions         // Colors
 		0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,  // Bottom Right
@@ -65,6 +68,11 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// Position attribute
+	/*
+	因为我们添加了另一个顶点属性，并且更新了VBO的内存，
+	我们就必须重新配置顶点属性指针
+	*/
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	// Color attribute
