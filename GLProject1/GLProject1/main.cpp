@@ -13,6 +13,10 @@
 // Other includes
 #include "Shader.h"
 
+// glm¿â
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
