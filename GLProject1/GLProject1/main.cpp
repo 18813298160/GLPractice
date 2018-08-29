@@ -7,6 +7,9 @@
 // GLFW
 #include <GLFW/glfw3.h>
 
+// SOIL库
+#include <SOIL.h>
+
 // Other includes
 #include "Shader.h"
 
@@ -42,10 +45,8 @@ int main()
 	// Define the viewport dimensions
 	glViewport(0, 0, WIDTH, HEIGHT);
 
-
 	// 编译shader程序
 	Shader ourShader("Shaders/default.vert", "Shaders/default.frag");
-
 
 	/* 
 	1.把颜色数据加进顶点数据中。我们将把颜色数据添加为3个float值
@@ -53,10 +54,10 @@ int main()
 	
 	2.需要注意的是顶点着色器中需要用layout标识符来把color属性的位置值设置为1：*/
 	GLfloat vertices[] = {
-		// Positions         // Colors
-		0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,  // Bottom Right
-		-0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,  // Bottom Left
-		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f   // Top 
+		// 位置				// 颜色				// 纹理
+		0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,	0.0f, 0.0f,		// Bottom Right
+		-0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,	1.0f, 0.0f,		// Bottom Left
+		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,  0.5f, 1.0f		// Top 
 	};
 	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
@@ -67,22 +68,47 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	// Position attribute
 	/*
 	因为我们添加了另一个顶点属性，并且更新了VBO的内存，
 	我们就必须重新配置顶点属性指针
 	*/
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+	// Position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	// Color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
-	glBindVertexArray(0); // Unbind VAO
+	// TexCoord attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+
+	// 解绑VAO
+	glBindVertexArray(0);
+
+	// 设置纹理，并读取图片
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// Set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int texWidth, texHeight;
+	unsigned char* image = SOIL_load_image("container.jpg", &texWidth, &texHeight, 0, SOIL_LOAD_RGB);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 
-						  // Game loop
+	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
@@ -93,9 +119,13 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Draw the triangle
+		// 绑定纹理
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		// 使用shader
 		ourShader.Use();
 		glBindVertexArray(VAO);
+		//  绘制图形
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
 
