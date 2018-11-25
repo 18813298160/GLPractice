@@ -128,12 +128,24 @@ int main()
 
 		// 使用shader
 		ourShader.Use();
+
+		// 创建transfor
+		glm::mat4 transform;
+		// 移动
+		//transform = glm::translate(transform, glm::vec3(.5f, -.5f, .0f));
+		// 旋转
+		transform = glm::rotate(transform, (GLfloat)glfwGetTime() * 50.0f, glm::vec3(.0f, .0f, 1.0f));
+
+		GLint transformLoc = glGetUniformLocation(ourShader.Program, "transform");
+		// 把矩阵数据传给着色器
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
 		glBindVertexArray(VAO);
 		//  绘制图形
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
 
-		// Swap the screen buffers
+		// Swap the screen buffers（双缓冲，交换前缓冲和后缓冲）
 		glfwSwapBuffers(window);
 	}
 	// Properly de-allocate all resources once they've outlived their purpose
