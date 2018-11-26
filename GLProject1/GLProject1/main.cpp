@@ -129,16 +129,24 @@ int main()
 		// 使用shader
 		ourShader.Use();
 
-		// 创建transfor
-		glm::mat4 transform;
-		// 移动
-		//transform = glm::translate(transform, glm::vec3(.5f, -.5f, .0f));
-		// 旋转
-		transform = glm::rotate(transform, (GLfloat)glfwGetTime() * 50.0f, glm::vec3(.0f, .0f, 1.0f));
+		// rotate around X axis
+		glm::mat4 model;
+		model = glm::rotate(model, -60.0f, glm::vec3(1.0f, .0f, .0f));
 
-		GLint transformLoc = glGetUniformLocation(ourShader.Program, "transform");
+		glm::mat4 view;
+		view = glm::translate(view, glm::vec3(.0f, .0f, -3.0f));
+
+		glm::mat4 projection;
+		projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+
+		GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
 		// 把矩阵数据传给着色器
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
+		GLint projectionLoc = glGetUniformLocation(ourShader.Program, "projection");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
 		//  绘制图形

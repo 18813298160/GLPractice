@@ -6,11 +6,13 @@ layout (location = 2) in vec2 texCoord;
 out vec3 ourColor;
 out vec2 TexCoord;
 
-uniform mat4 transform;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
 void main()
 {
-    gl_Position = transform * vec4(position, 1.0f);
+    gl_Position = projection *view *model * vec4(position, 1.0f);
     ourColor = color;
     //TexCoord = texCoord;
     // 纹理上下颠倒了！这是因为OpenGL要求y轴0.0坐标是在图片的底部的，但是图片的y轴0.0坐标通常在顶部
