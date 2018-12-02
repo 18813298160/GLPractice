@@ -49,6 +49,9 @@ int main()
 	// Define the viewport dimensions
 	glViewport(0, 0, WIDTH, HEIGHT);
 
+	// 开启深度测试
+	glEnable(GL_DEPTH_TEST);
+
 	// 编译shader程序
 	Shader ourShader("Shaders/default.vert", "Shaders/default.frag");
 
@@ -57,11 +60,59 @@ int main()
 	至vertices数组
 	
 	2.需要注意的是顶点着色器中需要用layout标识符来把color属性的位置值设置为1：*/
-	GLfloat vertices[] = {
+
+	// 三角形
+	/*GLfloat vertices[] = {
 		// 位置				// 颜色				// 纹理
 		0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f,	0.0f, 0.0f,		// Bottom Right
 		-0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,	1.0f, 0.0f,		// Bottom Left
 		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,  0.5f, 1.0f		// Top 
+	};*/
+
+
+	// 立方体
+	GLfloat vertices[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
@@ -78,14 +129,14 @@ int main()
 	*/
 
 	// Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	// Color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
 	// TexCoord attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
 
 	// 解绑VAO
@@ -121,7 +172,7 @@ int main()
 		// Render
 		// Clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// 绑定纹理
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -129,10 +180,11 @@ int main()
 		// 使用shader
 		ourShader.Use();
 
-		// rotate around X axis
+		// 创建一个模型矩阵，将顶点坐标转换至世界坐标，rotate around X axis
 		glm::mat4 model;
 		model = glm::rotate(model, -60.0f, glm::vec3(1.0f, .0f, .0f));
 
+		// 创建一个观察矩阵，在场景中稍微向后移动，使对象可见
 		glm::mat4 view;
 		view = glm::translate(view, glm::vec3(.0f, .0f, -3.0f));
 
@@ -150,7 +202,7 @@ int main()
 
 		glBindVertexArray(VAO);
 		//  绘制图形
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 
 		// Swap the screen buffers（双缓冲，交换前缓冲和后缓冲）
