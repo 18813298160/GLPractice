@@ -18,6 +18,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// Assimp Ä£ÐÍ¼ÓÔØ¿â
+#include "assimp/assimp/Importer.hpp"
+#include "assimp/assimp/scene.h"
+#include "assimp/assimp/postprocess.h"
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // Window dimensions
