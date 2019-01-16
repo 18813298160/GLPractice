@@ -12,6 +12,7 @@
 
 // Other includes
 #include "Shader.h"
+#include "Camera.h"
 
 // glm库
 #include <glm/glm.hpp>
@@ -24,6 +25,17 @@
 #include "assimp/assimp/postprocess.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void Do_Movement();
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+bool keys[1024];
+GLfloat lastX = 400, lastY = 300;
+bool firstMouse = true;
+
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -38,6 +50,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
@@ -45,6 +58,11 @@ int main()
 
 	// Set the required callback functions
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	// Options
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
@@ -57,8 +75,10 @@ int main()
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
 
-	// 编译shader程序
-	Shader ourShader("Shaders/default.vert", "Shaders/default.frag");
+	// 用于渲染物体
+	Shader lightShader("Shaders/default.vert", "Shaders/default.frag");
+	// 用于渲染灯光立方体
+	Shader lampShader("Shaders/light.vert", "Shaders/light.frag");
 
 	/* 
 	1.把颜色数据加进顶点数据中。我们将把颜色数据添加为3个float值
@@ -73,7 +93,7 @@ int main()
 		-0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,	1.0f, 0.0f,		// Bottom Left
 		0.0f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f,  0.5f, 1.0f		// Top 
 	};*/
-
+	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 	// 立方体
 	GLfloat vertices[] = {
@@ -147,6 +167,14 @@ int main()
 	// 解绑VAO
 	glBindVertexArray(0);
 
+	GLuint lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
 	// 设置纹理，并读取图片
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -171,8 +199,13 @@ int main()
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
+
+		GLfloat curFrame = glfwGetTime();
+		deltaTime = curFrame - lastFrame;
+		lastFrame = curFrame;
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
+		Do_Movement();
 
 		// Render
 		// Clear the colorbuffer
@@ -182,30 +215,50 @@ int main()
 		// 绑定纹理
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		// 使用shader
-		ourShader.Use();
+		lightShader.Use();
+		GLint objectColorLoc = glGetUniformLocation(lightShader.Program, "objectColor");
+		GLint lightColorLoc = glGetUniformLocation(lightShader.Program, "lightColor");
+		glUniform3f(objectColorLoc, 0.7f, 0.5f, 0.81f);
+		glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
 
-		// 创建一个模型矩阵，将顶点坐标转换至世界坐标，rotate around X axis
-		glm::mat4 model;
-		model = glm::rotate(model, -60.0f, glm::vec3(1.0f, .0f, .0f));
+		// 创建一个观察（摄像机）矩阵
 
-		// 创建一个观察矩阵，在场景中稍微向后移动，使对象可见
 		glm::mat4 view;
-		view = glm::translate(view, glm::vec3(.0f, .0f, -3.0f));
+		view = camera.GetViewMatrix();
 
 		glm::mat4 projection;
-		projection = glm::perspective(45.0f, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+		projection = glm::perspective(camera.Zoom, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
-		GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
+		GLint modelLoc = glGetUniformLocation(lightShader.Program, "model");
+		GLint viewLoc = glGetUniformLocation(lightShader.Program, "view");
+		GLint projectionLoc = glGetUniformLocation(lightShader.Program, "projection");
 		// 把矩阵数据传给着色器
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-		GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
-		GLint projectionLoc = glGetUniformLocation(ourShader.Program, "projection");
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
+		// 创建一个模型矩阵，将顶点坐标转换至世界坐标，rotate around X axis
+		glm::mat4 model;
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//  绘制图形
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+
+		// 使用shader
+		lampShader.Use();
+		modelLoc = glGetUniformLocation(lampShader.Program, "model");
+		viewLoc = glGetUniformLocation(lampShader.Program, "view");
+		projectionLoc = glGetUniformLocation(lampShader.Program, "projection");
+
+		// 把矩阵数据传给着色器
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		model = glm::mat4();
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		glBindVertexArray(lightVAO);
 		//  绘制图形
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
@@ -221,9 +274,55 @@ int main()
 	return 0;
 }
 
+// Moves/alters the camera positions based on user input
+void Do_Movement()
+{
+	// Camera controls
+	if (keys[GLFW_KEY_W])
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (keys[GLFW_KEY_S])
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (keys[GLFW_KEY_A])
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (keys[GLFW_KEY_D])
+		camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+	//cout << key << endl;
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	if (key >= 0 && key < 1024)
+	{
+		if (action == GLFW_PRESS)
+			keys[key] = true;
+		else if (action == GLFW_RELEASE)
+			keys[key] = false;
+	}
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos;  // Reversed since y-coordinates go from bottom to left
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
 }

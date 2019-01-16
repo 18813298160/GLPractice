@@ -1,5 +1,12 @@
 ﻿  main.cpp
-  GLM: rotate function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
+c:\users\hushiyu\desktop\glpro\glproject1\glproject1\main.cpp(203): warning C4244: “初始化”: 从“double”转换到“GLfloat”，可能丢失数据
+c:\users\hushiyu\desktop\glpro\glproject1\glproject1\main.cpp(310): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
+c:\users\hushiyu\desktop\glpro\glproject1\glproject1\main.cpp(311): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
+c:\users\hushiyu\desktop\glpro\glproject1\glproject1\main.cpp(315): warning C4244: “初始化”: 从“double”转换到“GLfloat”，可能丢失数据
+c:\users\hushiyu\desktop\glpro\glproject1\glproject1\main.cpp(316): warning C4244: “初始化”: 从“double”转换到“GLfloat”，可能丢失数据
+c:\users\hushiyu\desktop\glpro\glproject1\glproject1\main.cpp(318): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
+c:\users\hushiyu\desktop\glpro\glproject1\glproject1\main.cpp(319): warning C4244: “=”: 从“double”转换到“GLfloat”，可能丢失数据
+c:\users\hushiyu\desktop\glpro\glproject1\glproject1\main.cpp(327): warning C4244: “参数”: 从“double”转换到“GLfloat”，可能丢失数据
   GLM: perspective function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
   GLProject1.vcxproj -> C:\Users\hushiyu\Desktop\GLPro\GLProject1\Debug\GLProject1.exe
   GLProject1.vcxproj -> C:\Users\hushiyu\Desktop\GLPro\GLProject1\Debug\GLProject1.pdb (Full PDB)
